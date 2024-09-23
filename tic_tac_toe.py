@@ -77,5 +77,11 @@ class Grid:
         for row in self.grid:
             print(row)
 
+    def set_my_window(self, window_name):
+        surface = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption(window_name)
+        pygame.display.set_icon(self.icon)
+        return surface
+
 
 
