@@ -53,39 +53,29 @@ class Grid:
             self.switch = False
 
     def win_case(self, player):
-        pass
+        for row in range(3):
+            if self.grid[row][0] == self.grid[row][1] == self.grid[row][2] == player:
+                self.game_over = True
+                return True
+
+        for col in range(3):
+            if self.grid[0][col] == self.grid[1][col] == self.grid[2][col] == player:
+                self.game_over = True
+                return True
+
+        if self.grid[0][0] == self.grid[1][1] == self.grid[2][2] == player:
+            self.game_over = True
+            return True
+
+        if self.grid[0][2] == self.grid[1][1] == self.grid[2][0] == player:
+            self.game_over = True
+            return True
+
+        return False
 
     def print_grid(self):
         for row in self.grid:
             print(row)
 
 
-surface = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Game")
-pygame.display.set_icon(icon)
 
-running = True
-grid = Grid()
-player = "X"
-
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            pos = pygame.mouse.get_pos()
-            grid.get_mouse((pos[0] // int(WIDTH/3)), pos[1] // int(HEIGHT/3), player)
-            if grid.switch:
-                if player == "X":
-                    player = "O"
-                elif player == "O":
-                    player = "X"
-            
-
-            
-
-    surface.fill(BG_COLOR)
-    grid.draw(surface)
-
-    pygame.display.update()
