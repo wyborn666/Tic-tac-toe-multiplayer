@@ -2,68 +2,77 @@ import tic_tac_toe
 import pygame
 import threading
 import socket
-
-connection_success = False
-user, address = None, None
-
-grid = tic_tac_toe.Grid()
-surface = grid.set_my_window("Server")
+import re
 
 
-def create_thread(target):
-    thread_gen = threading.Thread(target=target, daemon=True)
-    thread_gen.start()
+class Server:
+    def __init__(self):
+        self.connection_success = False
+        self.user, self.address = None, None
+        self.turn = True
+        self.running = True
+        self.player = "X"
+        self.opponent = "O"
 
+        self.grid = tic_tac_toe.Grid()
+        self.surface = self.grid.set_my_window("Server")
+    
+    def create_thread(self, target):
+        thread_gen = threading.Thread(target=target, daemon=True)
+        thread_gen.start()
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(("127.0.0.1", 12345))
-server.listen(1)
+    def connection(self):
+        self.user, self.address = self.server.accept()
+        self.connection_success = True
+        self.received_data()
 
+    def received_data(self):
+        while True:
+            data = self.user.recv(1024).decode()
 
-def received_data():
-    global turn
-    while True:
-        data = user.recv(1024).decode()
-        data = data.split('.')
-        x, y = int(data[0]), int(data[1])
-        #x, y - coordinates of opponent's move
-        #turn_status - current turn status
-        turn = True
-        if grid.get_cell_value(x, y) == 0:
-            grid.set_cell_value(x, y, opponent)
-        print(data)
+            if re.match(r'new', data):
+                self.grid.reset()
+                self.turn = True
 
-def connection():
-    global user, address, connection_success
-    user, address = server.accept()
-    connection_success = True
-    received_data()
+            elif re.match(r'\d.\d$', data):
+                data = data.split('.')
+                x, y = int(data[0]), int(data[1])
+                self.grid.set_cell_value(x, y, self.opponent)
+                self.turn = True
 
+    def game(self):
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind(("127.0.0.1", 12345))
+        self.server.listen(1)
+        
+        self.create_thread(self.connection)
 
-turn = True
-running = True
-player = "X"
-opponent = "O"
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
 
-create_thread(connection)
+                if event.type == pygame.MOUSEBUTTONDOWN and self.connection_success and self.turn and not self.grid.game_over:
+        
+                    pos = pygame.mouse.get_pos()
+                    x_pos, y_pos = pos[0] // int(tic_tac_toe.WIDTH / 3), pos[1] // int(tic_tac_toe.HEIGHT / 3)
+                    self.grid.get_mouse(x_pos, y_pos, self.player)
 
+                    if self.grid.switch:
+                        data = '{}.{}'.format(x_pos, y_pos)
+                        self.user.send(data.encode())
+                        self.turn = False
+                
+                if self.grid.win_case(self.player):
+                    data = "new"
+                    self.user.send(data.encode())
+                    print(f"Player {self.player} wins!")
+                    self.grid.reset()
+                    self.turn = True
+            
+            self.surface.fill(tic_tac_toe.BG_COLOR)
+            self.grid.draw(self.surface)
+            pygame.display.update()
 
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-        if event.type == pygame.MOUSEBUTTONDOWN and connection_success and turn:
-            pos = pygame.mouse.get_pos()
-            x_pos, y_pos = pos[0] // int(tic_tac_toe.WIDTH / 3), pos[1] // int(tic_tac_toe.HEIGHT / 3)
-            grid.get_mouse(x_pos, y_pos, player)
-
-
-            data = '{}.{}'.format(x_pos, y_pos)
-            user.send(data.encode())
-            turn = False
-
-
-    surface.fill(tic_tac_toe.BG_COLOR)
-    grid.draw(surface)
-    pygame.display.update()
+serv = Server()
+serv.game()
