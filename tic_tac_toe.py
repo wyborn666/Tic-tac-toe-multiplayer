@@ -6,12 +6,6 @@ WIDTH , HEIGHT = 700, 700
 BG_COLOR = (10, 100, 100)
 LINES_COLOR = (255, 255, 255)
 
-x_symbol = pygame.image.load("models//X.png")
-y_symbol = pygame.image.load("models//O.png")
-icon = pygame.image.load("models//icon.png")
-
-x_symbol = pygame.transform.scale(x_symbol, ((WIDTH/3), (HEIGHT/3)))
-y_symbol = pygame.transform.scale(y_symbol, ((WIDTH/3), (HEIGHT/3)))
 
 class Grid:
     
@@ -23,6 +17,13 @@ class Grid:
         
         self.grid = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.switch = True
+
+        self.x_symbol = pygame.image.load("models//X.png")
+        self.y_symbol = pygame.image.load("models//O.png")
+        self.icon = pygame.image.load("models//icon.png")
+
+        self.x_symbol = pygame.transform.scale(self.x_symbol, ((WIDTH/3), (HEIGHT/3)))
+        self.y_symbol = pygame.transform.scale(self.y_symbol, ((WIDTH/3), (HEIGHT/3)))
         
     
     def draw(self, surface):
@@ -32,9 +33,9 @@ class Grid:
         for y in range(len(self.grid)):
             for x in range(len(self.grid[y])):
                 if self.get_cell_value(x, y) == "X":
-                    surface.blit(x_symbol, (x * WIDTH/3, y * HEIGHT/3))
+                    surface.blit(self.x_symbol, (x * WIDTH/3, y * HEIGHT/3))
                 elif self.get_cell_value(x, y) == "O":
-                    surface.blit(y_symbol, ((x * WIDTH/3, y * HEIGHT/3)))
+                    surface.blit(self.y_symbol, ((x * WIDTH/3, y * HEIGHT/3)))
 
     def get_cell_value(self, x, y):
         return self.grid[y][x]
