@@ -73,6 +73,12 @@ class Grid:
 
         return False
 
+    def draw_case(self):
+        for row in self.grid:
+            if 0 in row:
+                return False
+        return True
+
     def print_grid(self):
         for row in self.grid:
             print(row)
