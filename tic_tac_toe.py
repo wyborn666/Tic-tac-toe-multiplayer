@@ -1,8 +1,7 @@
-import socket
 import pygame
+import pygame.freetype
 
-
-WIDTH , HEIGHT = 700, 700
+WIDTH , HEIGHT = 600, 600
 BG_COLOR = (10, 100, 100)
 LINES_COLOR = (255, 255, 255)
 
@@ -17,13 +16,24 @@ class Grid:
         
         self.grid = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.switch = True
+        self.winning_cells = []
+        self.game_over = False
 
         self.x_symbol = pygame.image.load("models//X.png")
-        self.y_symbol = pygame.image.load("models//O.png")
+        self.o_symbol = pygame.image.load("models//O.png")
+        self.x_symbol_win = pygame.image.load("models//X_win.png")
+        self.o_symbol_win = pygame.image.load("models//O_win.png")
         self.icon = pygame.image.load("models//icon.png")
+        self.font_winner = pygame.freetype.Font("SkrampCyr-Regular_0.ttf", 24)
+        self.font_continue = pygame.freetype.Font("SkrampCyr-Regular_0.ttf", 20)
 
         self.x_symbol = pygame.transform.scale(self.x_symbol, ((WIDTH/3), (HEIGHT/3)))
-        self.y_symbol = pygame.transform.scale(self.y_symbol, ((WIDTH/3), (HEIGHT/3)))
+        self.o_symbol = pygame.transform.scale(self.o_symbol, ((WIDTH/3), (HEIGHT/3)))
+        self.x_symbol_win = pygame.transform.scale(self.x_symbol_win, ((WIDTH // 3), (HEIGHT // 3)))
+        self.o_symbol_win = pygame.transform.scale(self.o_symbol_win, ((WIDTH // 3), (HEIGHT // 3)))
+
+        self.score_wins_x = 0
+        self.score_wins_o = 0
         
     
     def draw(self, surface):
@@ -33,9 +43,16 @@ class Grid:
         for y in range(len(self.grid)):
             for x in range(len(self.grid[y])):
                 if self.get_cell_value(x, y) == "X":
-                    surface.blit(self.x_symbol, (x * WIDTH/3, y * HEIGHT/3))
+                    if (x, y) in self.winning_cells:
+                        surface.blit(self.x_symbol_win, (x * WIDTH / 3, y * HEIGHT / 3))
+                    else:
+                        surface.blit(self.x_symbol, (x * WIDTH/3, y * HEIGHT/3))
+
                 elif self.get_cell_value(x, y) == "O":
-                    surface.blit(self.y_symbol, ((x * WIDTH/3, y * HEIGHT/3)))
+                    if (x, y) in self.winning_cells:
+                        surface.blit(self.o_symbol_win, ((x * WIDTH / 3, y * HEIGHT / 3)))
+                    else:
+                        surface.blit(self.o_symbol, (x * WIDTH / 3, y * HEIGHT / 3))
 
     def get_cell_value(self, x, y):
         return self.grid[y][x]
@@ -57,19 +74,23 @@ class Grid:
         for row in range(3):
             if self.grid[row][0] == self.grid[row][1] == self.grid[row][2] == player:
                 self.game_over = True
+                self.winning_cells = [(0, row), (1, row), (2, row)]
                 return True
 
         for col in range(3):
             if self.grid[0][col] == self.grid[1][col] == self.grid[2][col] == player:
                 self.game_over = True
+                self.winning_cells = [(col, 0), (col, 1), (col, 2)]
                 return True
 
         if self.grid[0][0] == self.grid[1][1] == self.grid[2][2] == player:
             self.game_over = True
+            self.winning_cells = [(0, 0), (1, 1), (2, 2)]
             return True
 
         if self.grid[0][2] == self.grid[1][1] == self.grid[2][0] == player:
             self.game_over = True
+            self.winning_cells = [(2, 0), (1, 1), (0, 2)]
             return True
 
         return False
@@ -83,6 +104,29 @@ class Grid:
     def print_grid(self):
         for row in self.grid:
             print(row)
+
+    def reset(self):
+        self.grid = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.switch = True
+        self.game_over = False
+        self.winning_cells = []
+
+    def update_score_and_display(self, surface, player, font_winner, font_continue):
+        if self.win_case(player):
+            if player == "X":
+                self.score_wins_x += 1
+            elif player == "O":
+                self.score_wins_o += 1
+
+        text_surface_x, rect_x = font_winner.render(f"Player X: {self.score_wins_x}", (0, 0, 0))
+        surface.blit(text_surface_x, (150, 250))
+
+        text_surface_o, rect_o = font_winner.render(f"Player O: {self.score_wins_o}", (0, 0, 0))
+        surface.blit(text_surface_o, (150, 300))
+
+
+        text_surface, rect = font_continue.render("Press space to continue", (0, 0, 0))
+        surface.blit(text_surface, (197, 450))
 
     def set_my_window(self, window_name):
         surface = pygame.display.set_mode((WIDTH, HEIGHT))
