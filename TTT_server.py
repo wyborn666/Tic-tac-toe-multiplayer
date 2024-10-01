@@ -48,12 +48,12 @@ class Server:
                 data = self.user.recv(1024).decode()
                 if data == "new":
                     self.grid.reset()
-                    self.turn = False
+                    self.turn = True
                 else:
                     x, y, condition = map(int, data.split('.'))
                     self.grid.set_cell_value(x, y, self.opponent)
                     if condition:
-                        self.grid.score_wins_x += 1
+                        self.grid.score_wins_o += 1
                     self.turn = True
             except Exception as e:
                 self.running = False
