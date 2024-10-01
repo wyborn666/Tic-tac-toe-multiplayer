@@ -20,14 +20,14 @@ class Grid:
         self.winning_cells = []
         self.game_over = False
 
-        self.x_symbol = pygame.image.load("models//X.png")
-        self.o_symbol = pygame.image.load("models//O.png")
-        self.x_symbol_win = pygame.image.load("models//X_win.png")
-        self.o_symbol_win = pygame.image.load("models//O_win.png")
-        self.waiting_for_connection = pygame.image.load("models//waiting.png")
-        self.icon = pygame.image.load("models//icon.png")
-        self.font_winner = pygame.freetype.Font("models//SkrampCyr-Regular_0.ttf", 24)
-        self.font_continue = pygame.freetype.Font("models//SkrampCyr-Regular_0.ttf", 20)
+        self.x_symbol = pygame.image.load("X.png")
+        self.o_symbol = pygame.image.load("O.png")
+        self.x_symbol_win = pygame.image.load("X_win.png")
+        self.o_symbol_win = pygame.image.load("O_win.png")
+        self.waiting_for_connection = pygame.image.load("waiting.png")
+        self.icon = pygame.image.load("icon.png")
+        self.font_winner = pygame.freetype.Font("SkrampCyr-Regular_0.ttf", 24)
+        self.font_continue = pygame.freetype.Font("SkrampCyr-Regular_0.ttf", 20)
 
         self.x_symbol = pygame.transform.scale(self.x_symbol, ((WIDTH / 3), (HEIGHT / 3)))
         self.o_symbol = pygame.transform.scale(self.o_symbol, ((WIDTH / 3), (HEIGHT / 3)))
