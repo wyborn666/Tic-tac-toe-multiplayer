@@ -1,8 +1,9 @@
 import pygame
 import pygame.freetype
 
-WIDTH , HEIGHT = 600, 600
+WIDTH , HEIGHT = 300, 300
 BG_COLOR = (10, 100, 100)
+MENU_COLOR = (163, 172, 173)
 LINES_COLOR = (255, 255, 255)
 
 
@@ -24,8 +25,8 @@ class Grid:
         self.x_symbol_win = pygame.image.load("models//X_win.png")
         self.o_symbol_win = pygame.image.load("models//O_win.png")
         self.icon = pygame.image.load("models//icon.png")
-        self.font_winner = pygame.freetype.Font("SkrampCyr-Regular_0.ttf", 24)
-        self.font_continue = pygame.freetype.Font("SkrampCyr-Regular_0.ttf", 20)
+        self.font_winner = pygame.freetype.Font("models//SkrampCyr-Regular_0.ttf", 24)
+        self.font_continue = pygame.freetype.Font("models//SkrampCyr-Regular_0.ttf", 20)
 
         self.x_symbol = pygame.transform.scale(self.x_symbol, ((WIDTH/3), (HEIGHT/3)))
         self.o_symbol = pygame.transform.scale(self.o_symbol, ((WIDTH/3), (HEIGHT/3)))
@@ -34,8 +35,8 @@ class Grid:
 
         self.score_wins_x = 0
         self.score_wins_o = 0
-        
-    
+        self.condition = 0
+         
     def draw(self, surface):
         for line in self.grid_lines:
             pygame.draw.line(surface, (LINES_COLOR), line[0], line[1], width=5)
@@ -53,6 +54,9 @@ class Grid:
                         surface.blit(self.o_symbol_win, ((x * WIDTH / 3, y * HEIGHT / 3)))
                     else:
                         surface.blit(self.o_symbol, (x * WIDTH / 3, y * HEIGHT / 3))
+
+    def draw_client_menu(self, surface):
+        pass
 
     def get_cell_value(self, x, y):
         return self.grid[y][x]
@@ -75,22 +79,26 @@ class Grid:
             if self.grid[row][0] == self.grid[row][1] == self.grid[row][2] == player:
                 self.game_over = True
                 self.winning_cells = [(0, row), (1, row), (2, row)]
+                self.condition = 1
                 return True
 
         for col in range(3):
             if self.grid[0][col] == self.grid[1][col] == self.grid[2][col] == player:
                 self.game_over = True
                 self.winning_cells = [(col, 0), (col, 1), (col, 2)]
+                self.condition = 1
                 return True
 
         if self.grid[0][0] == self.grid[1][1] == self.grid[2][2] == player:
             self.game_over = True
             self.winning_cells = [(0, 0), (1, 1), (2, 2)]
+            self.condition = 1
             return True
 
         if self.grid[0][2] == self.grid[1][1] == self.grid[2][0] == player:
             self.game_over = True
             self.winning_cells = [(2, 0), (1, 1), (0, 2)]
+            self.condition = 1
             return True
 
         return False
@@ -99,6 +107,7 @@ class Grid:
         for row in self.grid:
             if 0 in row:
                 return False
+        self.game_over = True
         return True
 
     def print_grid(self):
@@ -107,25 +116,20 @@ class Grid:
 
     def reset(self):
         self.grid = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.condition = 0
         self.switch = True
         self.game_over = False
         self.winning_cells = []
 
-    def update_score_and_display(self, surface, player, font_winner, font_continue):
-        if self.win_case(player):
-            if player == "X":
-                self.score_wins_x += 1
-            elif player == "O":
-                self.score_wins_o += 1
-
-        text_surface_x, rect_x = font_winner.render(f"Player X: {self.score_wins_x}", (0, 0, 0))
+    def update_score_and_display(self, surface, player):        
+        text_surface_x, rect_x = self.font_winner.render(f"Player X: {self.score_wins_x}", (0, 0, 0))
         surface.blit(text_surface_x, (150, 250))
 
-        text_surface_o, rect_o = font_winner.render(f"Player O: {self.score_wins_o}", (0, 0, 0))
+        text_surface_o, rect_o = self.font_winner.render(f"Player O: {self.score_wins_o}", (0, 0, 0))
         surface.blit(text_surface_o, (150, 300))
 
 
-        text_surface, rect = font_continue.render("Press space to continue", (0, 0, 0))
+        text_surface, rect = self.font_continue.render("Press space to continue", (0, 0, 0))
         surface.blit(text_surface, (197, 450))
 
     def set_my_window(self, window_name):
@@ -135,4 +139,20 @@ class Grid:
         return surface
 
 
+class Button():
+    def __init__(self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
 
+        self.is_click = False
+
+    def update(self, screen, mouse_pos):
+        screen.blit(self.image, self.rect.topleft)
+        self.is_click = self.rect.collidepoint(mouse_pos)
+
+    def proc_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and self.is_click:
+            pygame.event.post(pygame.event.Event(pygame.USEREVENT, button=self))
