@@ -24,6 +24,7 @@ class Grid:
         self.o_symbol = pygame.image.load("models//O.png")
         self.x_symbol_win = pygame.image.load("models//X_win.png")
         self.o_symbol_win = pygame.image.load("models//O_win.png")
+        self.waiting_for_connection = pygame.image.load("models//waiting.png")
         self.icon = pygame.image.load("models//icon.png")
         self.font_winner = pygame.freetype.Font("models//SkrampCyr-Regular_0.ttf", 24)
         self.font_continue = pygame.freetype.Font("models//SkrampCyr-Regular_0.ttf", 20)
