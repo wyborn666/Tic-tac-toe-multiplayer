@@ -2,7 +2,6 @@ import tic_tac_toe
 import pygame
 import threading
 import socket
-import re
 import struct
 import time
 import sys
@@ -11,6 +10,7 @@ MCAST_GRP = '224.0.0.1'
 MCAST_PORT = 5007
 SERVER_PORT = 1234
 SERVER_IP = socket.gethostbyname(socket.getfqdn())
+BLACK = (0, 0, 0)
 
 class Server:
     def __init__(self):
@@ -35,30 +35,28 @@ class Server:
         while True:
             message = f"{SERVER_IP}:{SERVER_PORT}"
             mltSocket.sendto(message.encode(), (MCAST_GRP, MCAST_PORT))
-            print(f"Announced server: {message}")
             time.sleep(5)
 
     def connection(self):
         self.user, self.address = self.server.accept()
-        print(f"Connected to {self.address}")
         self.connection_success = True
         self.received_data()
 
     def received_data(self):
         while True:
-            data = self.user.recv(1024).decode()
-
-            if re.match(r'new', data):
-                self.grid.reset()
-                self.turn = True
-
-            elif re.match(r'\d.\d.\d$', data):
-                data = data.split('.')
-                x, y, condition = int(data[0]), int(data[1]), int(data[2])
-                self.grid.set_cell_value(x, y, self.opponent)
-                if condition:
-                    self.grid.score_wins_o += 1
-                self.turn = True
+            try:
+                data = self.user.recv(1024).decode()
+                if data == "new":
+                    self.grid.reset()
+                    self.turn = False
+                else:
+                    x, y, condition = map(int, data.split('.'))
+                    self.grid.set_cell_value(x, y, self.opponent)
+                    if condition:
+                        self.grid.score_wins_x += 1
+                    self.turn = True
+            except Exception as e:
+                self.running = False
 
     def main_menu(self):
         self.create_thread(self.announce_server)
@@ -73,20 +71,23 @@ class Server:
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    sys.exit()
+                    running = False
+            
+            font_small = pygame.font.Font(None, 60)
 
             self.surface.fill(tic_tac_toe.MENU_COLOR)
+            self.surface.blit(self.grid.waiting_for_connection, (90, 90))
+            
+            text = font_small.render("Waiting for connection", True, BLACK)
+            self.surface.blit(text, (24, 30))
+
+
             pygame.display.update()
             if self.connection_success:
                 running = False
                 self.game()
 
-
-
-
     def game(self):
-
-        #Add function that will draw main menu. MLC_thread will create in that function.
         self.create_thread(self.announce_server)
 
         while self.running:
@@ -105,8 +106,11 @@ class Server:
                             self.grid.score_wins_x += 1
 
                         data = '{}.{}.{}'.format(x_pos, y_pos, self.grid.condition)
-                        self.user.send(data.encode())
-                        self.turn = False
+                        try:
+                            self.user.send(data.encode())
+                            self.turn = False
+                        except Exception as e:
+                            sys.exit()
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE and self.grid.game_over:
@@ -122,7 +126,6 @@ class Server:
                 self.grid.update_score_and_display(self.surface,self.player)
 
             pygame.display.update()
-
 
 
 pygame.init()
